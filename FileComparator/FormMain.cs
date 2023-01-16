@@ -28,7 +28,7 @@ namespace FileComparator
             labelFirstFolder.Text = pathToFirstDirectory;
             var firstDirectoryInfo = new DirectoryInfo(pathToFirstDirectory);
 
-            foreach (var fileInfo in firstDirectoryInfo.EnumerateFiles())
+            foreach (var fileInfo in firstDirectoryInfo.EnumerateFiles())  // GetFiles() - выгружает сразу все файлы, EnumerateFiles() - выгружает по одному
             {
                 var versionInfo = FileVersionInfo.GetVersionInfo(pathToFirstDirectory + "\\" + fileInfo.Name);
 
