@@ -78,7 +78,7 @@ namespace FileComparator
 
                 listFilesInSecondFolder.Add(someFile);
 
-                if (listFilesInFirstFolder.Exists(f => f.Name == someFile.Name && f.Size != someFile.Size))  // TODO добавить ещё условие - сравнение по версии
+                if (listFilesInFirstFolder.Exists(f => f.Name == someFile.Name && (f.Size != someFile.Size || f.Version != someFile.Version)))
                 {
                     richTextBoxSecondFolder.SelectionColor = Color.Red;
                     richTextBoxSecondFolder.AppendText("=> " + someFile.Name + " - " + someFile.Size + "B - " + someFile.Version + Environment.NewLine);
