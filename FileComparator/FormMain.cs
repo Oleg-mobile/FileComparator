@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace FileComparator
 {
@@ -16,10 +17,17 @@ namespace FileComparator
 
         private void pictureBoxFirstFolder_Click(object sender, EventArgs e)
         {
+            if (!string.IsNullOrWhiteSpace(pathToFirstDirectory))
+            {
+                folderBrowserDialogFirst.SelectedPath = pathToFirstDirectory;
+            }
+
             if (folderBrowserDialogFirst.ShowDialog() != DialogResult.OK) return;
 
             richTextBoxFirstFolder.Clear();
             _listFilesInFirstFolder.Clear();
+
+
 
             pathToFirstDirectory = folderBrowserDialogFirst.SelectedPath;
             labelFirstFolder.Text = pathToFirstDirectory;
@@ -98,7 +106,7 @@ namespace FileComparator
             }
 
             // Есть в первом списке, но нет во втором
-            var difference = _listFilesInFirstFolder.Except(_listFilesInSecondFolder);
+            var difference = _listFilesInFirstFolder.Where(f => !_listFilesInSecondFolder.Any(s => s.Name == f.Name));
             foreach (SomeFile file in difference)
             {
                 richTextBoxFirstFolder.SelectionColor = Color.Blue;

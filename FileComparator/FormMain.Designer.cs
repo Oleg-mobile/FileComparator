@@ -68,7 +68,7 @@
             // pictureBoxFirstFolder
             // 
             this.pictureBoxFirstFolder.Image = ((System.Drawing.Image)(resources.GetObject("pictureBoxFirstFolder.Image")));
-            this.pictureBoxFirstFolder.Location = new System.Drawing.Point(23, 28);
+            this.pictureBoxFirstFolder.Location = new System.Drawing.Point(23, 21);
             this.pictureBoxFirstFolder.Name = "pictureBoxFirstFolder";
             this.pictureBoxFirstFolder.Size = new System.Drawing.Size(39, 26);
             this.pictureBoxFirstFolder.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -79,7 +79,7 @@
             // pictureBoxSecondFolder
             // 
             this.pictureBoxSecondFolder.Image = ((System.Drawing.Image)(resources.GetObject("pictureBoxSecondFolder.Image")));
-            this.pictureBoxSecondFolder.Location = new System.Drawing.Point(675, 28);
+            this.pictureBoxSecondFolder.Location = new System.Drawing.Point(675, 21);
             this.pictureBoxSecondFolder.Name = "pictureBoxSecondFolder";
             this.pictureBoxSecondFolder.Size = new System.Drawing.Size(39, 26);
             this.pictureBoxSecondFolder.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
