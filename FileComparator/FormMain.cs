@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 
 namespace FileComparator
 {
@@ -26,8 +24,6 @@ namespace FileComparator
 
             richTextBoxFirstFolder.Clear();
             _listFilesInFirstFolder.Clear();
-
-
 
             pathToFirstDirectory = folderBrowserDialogFirst.SelectedPath;
             labelFirstFolder.Text = pathToFirstDirectory;
