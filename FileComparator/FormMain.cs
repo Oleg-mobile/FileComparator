@@ -1,11 +1,12 @@
-﻿using System.Diagnostics;
+﻿using System.Collections;
+using System.Diagnostics;
 
 namespace FileComparator
 {
     public partial class FormMain : Form
     {
-        private readonly List<SomeFile> _listFilesInFirstFolder = new List<SomeFile>();
-        private readonly List<SomeFile> _listFilesInSecondFolder = new List<SomeFile>();
+        private readonly IList<SomeFile> _firstFolderFiles = new List<SomeFile>();
+        private readonly IList<SomeFile> _secondFolderFiles = new List<SomeFile>();
         private string pathToFirstDirectory = string.Empty;
 
         public FormMain()
@@ -20,19 +21,32 @@ namespace FileComparator
                 folderBrowserDialogFirst.SelectedPath = pathToFirstDirectory;
             }
 
-            if (folderBrowserDialogFirst.ShowDialog() != DialogResult.OK) return;
-
-            richTextBoxFirstFolder.Clear();
-            _listFilesInFirstFolder.Clear();
+            if (folderBrowserDialogFirst.ShowDialog() != DialogResult.OK)
+                return;
 
             pathToFirstDirectory = folderBrowserDialogFirst.SelectedPath;
             labelFirstFolder.Text = pathToFirstDirectory;
 
-            var firstDirectoryInfo = new DirectoryInfo(pathToFirstDirectory);
+            richTextBoxFirstFolder.Clear();
 
-            foreach (var fileInfo in firstDirectoryInfo.EnumerateFiles())  // GetFiles() - выгружает сразу все файлы, EnumerateFiles() - выгружает по одному
+            InitFolder(pathToFirstDirectory, _firstFolderFiles);
+
+            foreach (var someFile in _firstFolderFiles)
             {
-                var versionInfo = FileVersionInfo.GetVersionInfo(pathToFirstDirectory + "\\" + fileInfo.Name);
+                richTextBoxFirstFolder.AppendText(someFile.Name + " - " + someFile.Size + "B - " + someFile.Version + Environment.NewLine);
+            }
+
+            labelFilesCountFirst.Text = $"Количество файлов: {_firstFolderFiles.Count}";
+        }
+
+        private void InitFolder(string pathToDirectory, IList<SomeFile> someFiles)
+        {
+            var directoryInfo = new DirectoryInfo(pathToDirectory);
+            someFiles.Clear();
+
+            foreach (var fileInfo in directoryInfo.EnumerateFiles())  // GetFiles() - выгружает сразу все файлы, EnumerateFiles() - выгружает по одному
+            {
+                var versionInfo = FileVersionInfo.GetVersionInfo(pathToDirectory + "\\" + fileInfo.Name);
 
                 var someFile = new SomeFile
                 {
@@ -41,47 +55,35 @@ namespace FileComparator
                     Version = versionInfo.FileVersion
                 };
 
-                _listFilesInFirstFolder.Add(someFile);
-
-                richTextBoxFirstFolder.AppendText(someFile.Name + " - " + someFile.Size + "B - " + someFile.Version + Environment.NewLine);
+                someFiles.Add(someFile);
             }
-
-            labelFilesCountFirst.Text = $"Количество файлов: {_listFilesInFirstFolder.Count}";
         }
 
         private void pictureBoxSecondFolder_Click(object sender, EventArgs e)
         {
-            if (folderBrowserDialogFirst.ShowDialog() != DialogResult.OK) return;
+            if (folderBrowserDialogFirst.ShowDialog() != DialogResult.OK) 
+                return;
 
             richTextBoxSecondFolder.Clear();
-            _listFilesInSecondFolder.Clear();
+            _secondFolderFiles.Clear();
 
             string pathToSecondDirectory = folderBrowserDialogFirst.SelectedPath;
 
             if (pathToSecondDirectory == pathToFirstDirectory)
             {
                 MessageBox.Show("Каталоги совпадают");
-                return;
+                //return;
             }
 
             labelSecondFolder.Text = pathToSecondDirectory;
 
             var SecondDirectoryInfo = new DirectoryInfo(pathToSecondDirectory);
 
-            foreach (var fileInfo in SecondDirectoryInfo.EnumerateFiles())
+            InitFolder(pathToSecondDirectory, _secondFolderFiles);
+
+            foreach (var someFile in _secondFolderFiles)
             {
-                var versionInfo = FileVersionInfo.GetVersionInfo(pathToSecondDirectory + "\\" + fileInfo.Name);
-
-                var someFile = new SomeFile
-                {
-                    Name = fileInfo.Name,
-                    Size = fileInfo.Length,
-                    Version = versionInfo.FileVersion
-                };
-
-                _listFilesInSecondFolder.Add(someFile);
-
-                if (_listFilesInFirstFolder.Exists(f => f.Name == someFile.Name && (f.Size != someFile.Size || f.Version != someFile.Version)))
+                if (_firstFolderFiles.Any(f => f.Name == someFile.Name && (f.Size != someFile.Size || f.Version != someFile.Version)))
                 {
                     richTextBoxSecondFolder.SelectionColor = Color.Red;
                     richTextBoxSecondFolder.AppendText("=> " + someFile.Name + " - " + someFile.Size + "B - " + someFile.Version + Environment.NewLine);
@@ -89,7 +91,7 @@ namespace FileComparator
                     continue;
                 }
 
-                if (!_listFilesInFirstFolder.Exists(f => f.Name == someFile.Name))
+                if (!_firstFolderFiles.Any(f => f.Name == someFile.Name))
                 {
                     richTextBoxSecondFolder.SelectionColor = Color.Blue;
                     richTextBoxSecondFolder.AppendText("Нет в первом списке: " + someFile.Name + Environment.NewLine);
@@ -102,14 +104,14 @@ namespace FileComparator
             }
 
             // Есть в первом списке, но нет во втором
-            var difference = _listFilesInFirstFolder.Where(f => !_listFilesInSecondFolder.Any(s => s.Name == f.Name));
+            var difference = _firstFolderFiles.Where(f => !_secondFolderFiles.Any(s => s.Name == f.Name));
             foreach (SomeFile file in difference)
             {
                 richTextBoxFirstFolder.SelectionColor = Color.Blue;
                 richTextBoxFirstFolder.AppendText("Нет во втором списке: " + file.Name + Environment.NewLine);
             }
 
-            labelFilesCountSecond.Text = $"Количество файлов: {_listFilesInSecondFolder.Count}";
+            labelFilesCountSecond.Text = $"Количество файлов: {_secondFolderFiles.Count}";
         }
     }
 }
