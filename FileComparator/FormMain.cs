@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using FileComparator.Models;
+using FileComparator.Services;
 using System.Diagnostics;
 
 namespace FileComparator
@@ -7,6 +8,7 @@ namespace FileComparator
     {
         private readonly IList<SomeFile> _firstFolderFiles = new List<SomeFile>();
         private readonly IList<SomeFile> _secondFolderFiles = new List<SomeFile>();
+        private readonly IComparerFileService _comparerFileService = new ComparerFileService();
         private string pathToFirstDirectory = string.Empty;
 
         public FormMain()
@@ -61,7 +63,7 @@ namespace FileComparator
 
         private void pictureBoxSecondFolder_Click(object sender, EventArgs e)
         {
-            if (folderBrowserDialogFirst.ShowDialog() != DialogResult.OK) 
+            if (folderBrowserDialogFirst.ShowDialog() != DialogResult.OK)
                 return;
 
             richTextBoxSecondFolder.Clear();
@@ -80,27 +82,25 @@ namespace FileComparator
             var SecondDirectoryInfo = new DirectoryInfo(pathToSecondDirectory);
 
             InitFolder(pathToSecondDirectory, _secondFolderFiles);
+            var comparerFileResults = _comparerFileService.Compare(_secondFolderFiles, _firstFolderFiles);
 
-            foreach (var someFile in _secondFolderFiles)
+            foreach (var comparerFileResult in comparerFileResults)
             {
-                if (_firstFolderFiles.Any(f => f.Name == someFile.Name && (f.Size != someFile.Size || f.Version != someFile.Version)))
+                switch (comparerFileResult.Value)
                 {
-                    richTextBoxSecondFolder.SelectionColor = Color.Red;
-                    richTextBoxSecondFolder.AppendText("=> " + someFile.Name + " - " + someFile.Size + "B - " + someFile.Version + Environment.NewLine);
-
-                    continue;
+                    case ComparerFileResult.Differences:
+                        richTextBoxSecondFolder.SelectionColor = Color.Red;
+                        richTextBoxSecondFolder.AppendText("=> " + comparerFileResult.Key.Name + " - " + comparerFileResult.Key.Size + "B - " + comparerFileResult.Key.Version + Environment.NewLine);
+                        break;
+                    case ComparerFileResult.NotFound:
+                        richTextBoxSecondFolder.SelectionColor = Color.Blue;
+                        richTextBoxSecondFolder.AppendText("Нет в первом списке: " + comparerFileResult.Key.Name + Environment.NewLine);
+                        break;
+                    case ComparerFileResult.Equals:
+                        richTextBoxSecondFolder.SelectionColor = Color.Black;
+                        richTextBoxSecondFolder.AppendText(comparerFileResult.Key.Name + " - " + comparerFileResult.Key.Size + "B - " + comparerFileResult.Key.Version + Environment.NewLine);
+                        break;
                 }
-
-                if (!_firstFolderFiles.Any(f => f.Name == someFile.Name))
-                {
-                    richTextBoxSecondFolder.SelectionColor = Color.Blue;
-                    richTextBoxSecondFolder.AppendText("Нет в первом списке: " + someFile.Name + Environment.NewLine);
-
-                    continue;
-                }
-
-                richTextBoxSecondFolder.SelectionColor = Color.Black;
-                richTextBoxSecondFolder.AppendText(someFile.Name + " - " + someFile.Size + "B - " + someFile.Version + Environment.NewLine);
             }
 
             // Есть в первом списке, но нет во втором
