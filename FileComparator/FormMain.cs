@@ -1,4 +1,5 @@
-﻿using FileComparator.Models;
+﻿using FileComparator.Extentions;
+using FileComparator.Models;
 using FileComparator.Services;
 using System.Diagnostics;
 
@@ -35,7 +36,7 @@ namespace FileComparator
 
             foreach (var someFile in _firstFolderFiles)
             {
-                richTextBoxFirstFolder.AppendText(someFile.Name + " - " + someFile.Size + "B - " + someFile.Version + Environment.NewLine);
+                richTextBoxFirstFolder.AppendText($"{someFile.Name} - {someFile.Size}B - {someFile.Version}\n");
             }
 
             labelFilesCountFirst.Text = $"Количество файлов: {_firstFolderFiles.Count}";
@@ -74,44 +75,38 @@ namespace FileComparator
             if (pathToSecondDirectory == pathToFirstDirectory)
             {
                 MessageBox.Show("Каталоги совпадают");
-                //return;
+                return;
             }
 
             labelSecondFolder.Text = pathToSecondDirectory;
 
-            var SecondDirectoryInfo = new DirectoryInfo(pathToSecondDirectory);
-
             InitFolder(pathToSecondDirectory, _secondFolderFiles);
             var comparerFileResults = _comparerFileService.Compare(_secondFolderFiles, _firstFolderFiles);
 
+            PrintComparerFileResults(comparerFileResults);
+            PrintFilesNotFoundSecondFolder();
+
+            labelFilesCountSecond.Text = $"Количество файлов: {_secondFolderFiles.Count}";
+        }
+
+        private void PrintComparerFileResults(Dictionary<SomeFile, ComparerFileResult> comparerFileResults)
+        {
             foreach (var comparerFileResult in comparerFileResults)
             {
-                switch (comparerFileResult.Value)
-                {
-                    case ComparerFileResult.Differences:
-                        richTextBoxSecondFolder.SelectionColor = Color.Red;
-                        richTextBoxSecondFolder.AppendText("=> " + comparerFileResult.Key.Name + " - " + comparerFileResult.Key.Size + "B - " + comparerFileResult.Key.Version + Environment.NewLine);
-                        break;
-                    case ComparerFileResult.NotFound:
-                        richTextBoxSecondFolder.SelectionColor = Color.Blue;
-                        richTextBoxSecondFolder.AppendText("Нет в первом списке: " + comparerFileResult.Key.Name + Environment.NewLine);
-                        break;
-                    case ComparerFileResult.Equals:
-                        richTextBoxSecondFolder.SelectionColor = Color.Black;
-                        richTextBoxSecondFolder.AppendText(comparerFileResult.Key.Name + " - " + comparerFileResult.Key.Size + "B - " + comparerFileResult.Key.Version + Environment.NewLine);
-                        break;
-                }
+                var someFile = comparerFileResult.Key;
+                var comparerPrintItem = FileComparatorConsts.DictionaryColors[comparerFileResult.Value];
+                richTextBoxSecondFolder.AppendText(comparerPrintItem.Print(someFile), comparerPrintItem.Color);
             }
+        }
 
-            // Есть в первом списке, но нет во втором
+        private void PrintFilesNotFoundSecondFolder()
+        {
+            richTextBoxSecondFolder.AppendText("\n");
             var difference = _firstFolderFiles.Where(f => !_secondFolderFiles.Any(s => s.Name == f.Name));
             foreach (SomeFile file in difference)
             {
-                richTextBoxFirstFolder.SelectionColor = Color.Blue;
-                richTextBoxFirstFolder.AppendText("Нет во втором списке: " + file.Name + Environment.NewLine);
+                richTextBoxSecondFolder.AppendText($"Нет во втором списке: {file.Name}", Color.Green);
             }
-
-            labelFilesCountSecond.Text = $"Количество файлов: {_secondFolderFiles.Count}";
         }
     }
 }
